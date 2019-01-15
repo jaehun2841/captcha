@@ -1,9 +1,15 @@
 package com.example.captcha.config.captcha;
 
-import com.example.captcha.redis.CaptchaJedisTemplate;
-import com.example.captcha.service.RedisManageableCaptchaService;
+import java.awt.*;
+import java.awt.image.ImageFilter;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+
 import com.example.captcha.servlet.CaptchaServlet;
-import com.jhlabs.image.*;
 import com.octo.captcha.CaptchaFactory;
 import com.octo.captcha.component.image.backgroundgenerator.BackgroundGenerator;
 import com.octo.captcha.component.image.color.ColorGenerator;
@@ -20,23 +26,13 @@ import com.octo.captcha.component.word.wordgenerator.RandomWordGenerator;
 import com.octo.captcha.component.word.wordgenerator.WordGenerator;
 import com.octo.captcha.engine.CaptchaEngine;
 import com.octo.captcha.engine.GenericCaptchaEngine;
-import com.octo.captcha.engine.bufferedengine.ContainerConfiguration;
-import com.octo.captcha.engine.bufferedengine.SimpleBufferedEngineContainer;
-import com.octo.captcha.engine.bufferedengine.buffer.DiskCaptchaBuffer;
-import com.octo.captcha.engine.bufferedengine.buffer.MemoryCaptchaBuffer;
 import com.octo.captcha.image.gimpy.GimpyFactory;
 import com.octo.captcha.service.CaptchaService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.servlet.ServletRegistrationBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-
-import java.awt.*;
-import java.awt.image.ImageFilter;
+import com.octo.captcha.service.captchastore.FastHashMapCaptchaStore;
+import com.octo.captcha.service.multitype.GenericManageableCaptchaService;
 
 @Configuration
-@ComponentScan(basePackages = {"com.example.captcha.config.*", "com.example.captcha.redis"})
+@ComponentScan(basePackages = {"com.example.captcha.config.*"})
 public class CaptchaConfig {
 
     private static final String ACCEPT_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
@@ -52,18 +48,8 @@ public class CaptchaConfig {
     private Font[] captchaFonts;
     @Autowired
     private ColorGenerator blackFontColorGenerator;
-    @Autowired
-    private BackgroundGenerator funkyBackgroundGenerator;
 	@Autowired
-	private BackgroundGenerator multipleShapeBackgroundGenerator;
-    @Autowired
-    private ContainerConfiguration containerConfiguration;
-    @Autowired
-    private MemoryCaptchaBuffer memoryCaptchaBuffer;
-    @Autowired
-    private DiskCaptchaBuffer diskCaptchaBuffer;
-    @Autowired
-    private CaptchaJedisTemplate jedisTemplate;
+	private BackgroundGenerator gradientBackgroundGenerator;
 
     /*@Bean
     public CaptchaService captchaService() {
@@ -93,17 +79,19 @@ public class CaptchaConfig {
         FontGenerator fontGenerator = new RandomFontGenerator(QUESTION_FONT_SIZE, QUESTION_FONT_SIZE, captchaFonts);
 
         TextPaster textPaster = new DecoratedRandomTextPaster(MIN_QUESTION_WORD_LENGTH, MAX_QUESTION_WORD_LENGTH, blackFontColorGenerator, new TextDecorator[]{new BaffleTextDecorator(0, Color.WHITE)});
-        WordToImage wordToImage = new DeformedComposedWordToImage(fontGenerator, multipleShapeBackgroundGenerator, textPaster,
+        WordToImage wordToImage = new DeformedComposedWordToImage(fontGenerator, gradientBackgroundGenerator, textPaster,
                 new ImageDeformationByFilters(new ImageFilter[]{}),
                 new ImageDeformationByFilters(new ImageFilter[]{}),
                 new ImageDeformationByFilters(new ImageFilter[]{})
         );
 
         GimpyFactory captchaFactory = new GimpyFactory(wordGenerator, wordToImage);
-        CaptchaEngine genericCaptchaEngine = new GenericCaptchaEngine(new CaptchaFactory[]{captchaFactory});
+        GenericCaptchaEngine genericCaptchaEngine = new GenericCaptchaEngine(new CaptchaFactory[]{captchaFactory});
 
-        CaptchaEngine captchaEngine = new SimpleBufferedEngineContainer(genericCaptchaEngine, memoryCaptchaBuffer, diskCaptchaBuffer, containerConfiguration, FEED_PERIOD_MILLISEC, SWAP_PRERIOD_MILLISEC);
-        return new RedisManageableCaptchaService(captchaEngine, MIN_GUARANTED_STORAGE_DELAY_IN_SECOND, MAX_CAPTCHA_STORE_SIZE, jedisTemplate);
+//        CaptchaEngine captchaEngine = new SimpleBufferedEngineContainer(genericCaptchaEngine, memoryCaptchaBuffer, diskCaptchaBuffer, containerConfiguration, FEED_PERIOD_MILLISEC, SWAP_PRERIOD_MILLISEC);
+//        CaptchaEngine captchaEngine = new DefaultGimpyEngine();
+        return new GenericManageableCaptchaService(new FastHashMapCaptchaStore(), genericCaptchaEngine, MIN_GUARANTED_STORAGE_DELAY_IN_SECOND, MAX_CAPTCHA_STORE_SIZE,
+                                                   1000);
     }
 
     @Bean

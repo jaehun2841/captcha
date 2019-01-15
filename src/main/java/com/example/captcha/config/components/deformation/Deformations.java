@@ -1,9 +1,14 @@
 package com.example.captcha.config.components.deformation;
 
-import com.jhlabs.image.*;
 import org.springframework.beans.factory.annotation.Autowire;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import com.jhlabs.image.EmbossFilter;
+import com.jhlabs.image.RippleFilter;
+import com.jhlabs.image.SphereFilter;
+import com.jhlabs.image.WaterFilter;
+import com.jhlabs.image.WeaveFilter;
 
 @Configuration
 public class Deformations {

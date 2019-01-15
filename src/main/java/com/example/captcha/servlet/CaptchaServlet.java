@@ -22,7 +22,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.UUID;
 
 @WebServlet
 @ComponentScan(basePackages = "com.example.captcha.config.captcha.*")
